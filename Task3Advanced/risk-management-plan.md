@@ -27,7 +27,7 @@
 - CI-проверки совместимости схем;
 - стандарты для idempotency, retry, DLQ и replay.
 
-### 2.3. Попадание запрещённых медицинских данных в self-service аналитику
+### 2.3. Попадание запрещенных медицинских данных в self-service аналитику
 **Меры:**
 - выделенный secure medical contour;
 - classification / policy engine;

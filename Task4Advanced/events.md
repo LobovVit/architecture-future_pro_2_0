@@ -340,7 +340,7 @@
 
 ## 21. PaymentSucceeded
 **Source context:** Payment Processing BC  
-**Семантика:** платеж успешно завершён  
+**Семантика:** платеж успешно завершен  
 **Минимальный контракт:**
 - `event_id`
 - `event_time`

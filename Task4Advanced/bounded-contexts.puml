@@ -63,10 +63,4 @@ package "Data Platform & Analytics Domain" {
 [Domain Event Publication BC] --> [Analytical Data Product BC] : events / streams
 [Analytical Data Product BC] --> [Self-Service Analytics BC] : governed datasets
 
-note right of [Self-Service Analytics BC]
-Medical cards, clinical histories and raw research results
-are excluded from general self-service analytics.
-Only governed and approved datasets are exposed.
-end note
-
 @enduml

@@ -8,9 +8,9 @@ skinparam packageStyle rectangle
 skinparam defaultTextAlignment center
 
 legend left
-Orange  = Domain Event
-LightBlue = Publisher Context
-LightGreen = Subscriber Contexts
+Оранжевый  = Domain Event
+Голубой = Publisher Context
+Зеленый = Subscriber Contexts
 endlegend
 
 ' ===== EVENTS =====
