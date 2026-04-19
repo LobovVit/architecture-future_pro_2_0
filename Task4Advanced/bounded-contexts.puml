@@ -1,0 +1,66 @@
+@startuml
+title Future 2.0 - Bounded Contexts
+
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultTextAlignment center
+
+package "Clinical Operations Domain" {
+  [Patient Registry BC]
+  [Encounter Management BC]
+  [Appointment & Scheduling BC]
+  [Staff & Clinic Operations BC]
+}
+
+package "Medical Data & AI Domain" {
+  [Medical Research BC]
+  [AI Inference BC]
+  [Medical Imaging BC]
+}
+
+package "Fintech Domain" {
+  [Customer Finance Profile BC]
+  [Account & Billing BC]
+  [Credit Contract BC]
+  [Payment Processing BC]
+}
+
+package "Partner Integration Domain" {
+  [Pharma Integration BC]
+  [Medical Device Integration BC]
+}
+
+package "Shared / Enterprise Domain" {
+  [Identity & Access BC]
+  [Reference Data BC]
+  [Consent & Privacy BC]
+  [Notification BC]
+}
+
+package "Data Platform & Analytics Domain" {
+  [Domain Event Publication BC]
+  [Analytical Data Product BC]
+  [Self-Service Analytics BC]
+}
+
+[Patient Registry BC] --> [Encounter Management BC] : patient identity
+[Patient Registry BC] --> [Appointment & Scheduling BC] : patient references
+[Encounter Management BC] --> [Medical Research BC] : diagnostic orders
+[Medical Research BC] --> [AI Inference BC] : study data / commands
+[Medical Imaging BC] --> [AI Inference BC] : imaging payloads
+[Patient Registry BC] --> [Customer Finance Profile BC] : customer linkage
+[Customer Finance Profile BC] --> [Credit Contract BC] : finance eligibility
+[Account & Billing BC] --> [Payment Processing BC] : invoices / payment intents
+[Credit Contract BC] --> [Account & Billing BC] : financed services
+[Pharma Integration BC] --> [Medical Research BC] : pharma data exchange
+[Medical Device Integration BC] --> [Medical Research BC] : equipment telemetry / study results
+[Consent & Privacy BC] --> [Medical Research BC] : consent policies
+[Consent & Privacy BC] --> [Self-Service Analytics BC] : access constraints
+[Reference Data BC] --> [Patient Registry BC] : reference dictionaries
+[Reference Data BC] --> [Account & Billing BC] : reference dictionaries
+[Identity & Access BC] --> [Self-Service Analytics BC] : RBAC / ABAC
+[Domain Event Publication BC] --> [Analytical Data Product BC] : events / streams
+[Analytical Data Product BC] --> [Self-Service Analytics BC] : governed datasets
+
+@enduml

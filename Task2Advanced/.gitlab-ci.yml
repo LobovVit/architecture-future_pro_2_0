@@ -1,0 +1,108 @@
+image:
+  name: hashicorp/terraform:1.7.5
+  entrypoint: [""]
+
+stages:
+  - validate
+  - plan
+  - apply
+
+variables:
+  TF_IN_AUTOMATION: "true"
+
+before_script:
+  - terraform version
+  - chmod +x scripts/*.sh
+
+validate:dev:
+  stage: validate
+  script:
+    - terraform fmt -check -recursive .
+    - cd envs/dev
+    - terraform init -backend=false
+    - terraform validate
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+
+plan:dev:
+  stage: plan
+  script:
+    - ./scripts/tf_plan.sh dev
+  artifacts:
+    paths:
+      - envs/dev/tfplan
+    expire_in: 1 day
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+
+apply:dev:
+  stage: apply
+  script:
+    - ./scripts/tf_apply.sh dev
+  dependencies:
+    - plan:dev
+  when: manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+validate:stage:
+  stage: validate
+  script:
+    - terraform fmt -check -recursive .
+    - cd envs/stage
+    - terraform init -backend=false
+    - terraform validate
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+plan:stage:
+  stage: plan
+  script:
+    - ./scripts/tf_plan.sh stage
+  artifacts:
+    paths:
+      - envs/stage/tfplan
+    expire_in: 1 day
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+apply:stage:
+  stage: apply
+  script:
+    - ./scripts/tf_apply.sh stage
+  dependencies:
+    - plan:stage
+  when: manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+validate:prod:
+  stage: validate
+  script:
+    - terraform fmt -check -recursive .
+    - cd envs/prod
+    - terraform init -backend=false
+    - terraform validate
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+plan:prod:
+  stage: plan
+  script:
+    - ./scripts/tf_plan.sh prod
+  artifacts:
+    paths:
+      - envs/prod/tfplan
+    expire_in: 1 day
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+apply:prod:
+  stage: apply
+  script:
+    - ./scripts/tf_apply.sh prod
+  dependencies:
+    - plan:prod
+  when: manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'

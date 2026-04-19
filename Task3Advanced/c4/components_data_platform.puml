@@ -1,0 +1,39 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+Container_Boundary(data_platform, "Event & Data Platform") {
+  Component(cdc_connectors, "CDC / Batch Connectors", "Connectors", "Читают legacy DWH и внешние источники")
+  Component(event_bus, "Event Bus", "Kafka", "Доменные и интеграционные события")
+  Component(schema_registry, "Schema Registry", "Registry", "Схемы и версии контрактов")
+  Component(stream_jobs, "Stream Processing Jobs", "Flink / Streams", "Enrichment, joins, near-real-time transformations")
+  Component(dlq_handler, "DLQ Handler", "Service", "Изоляция и повторная обработка ошибочных сообщений")
+  Component(raw_zone, "Raw Zone", "Storage", "Необработанные данные")
+  Component(curated_zone, "Curated Zone", "Storage", "Нормализованные и разрешенные данные")
+  Component(marts_zone, "Domain/Data Marts", "Storage", "Витрины и аналитические представления")
+  Component(classification_engine, "Classification & Policy Engine", "Service", "Классификация данных, masking, tagging")
+  Component(catalog_lineage, "Catalog & Lineage", "Service", "Каталог и прослеживаемость")
+}
+
+System_Ext(legacy_dwh, "Legacy DWH")
+System_Ext(domain_services, "Domain Services")
+System_Ext(self_service, "Self-Service Portal / BI")
+
+Rel(legacy_dwh, cdc_connectors, "Источник migration/CDC")
+Rel(domain_services, event_bus, "Публикация событий")
+Rel(cdc_connectors, raw_zone, "Пишут raw")
+Rel(event_bus, schema_registry, "Проверка схем")
+Rel(stream_jobs, event_bus, "Читают/пишут события")
+Rel(stream_jobs, curated_zone, "Пишут curated")
+Rel(curated_zone, marts_zone, "Формирование витрин")
+Rel(classification_engine, raw_zone, "Классификация")
+Rel(classification_engine, curated_zone, "Маркировка/маскирование")
+Rel(catalog_lineage, raw_zone, "Каталог")
+Rel(catalog_lineage, curated_zone, "Каталог")
+Rel(catalog_lineage, marts_zone, "Каталог")
+Rel(self_service, marts_zone, "Читает разрешенные витрины")
+Rel(event_bus, dlq_handler, "DLQ")
+Rel(dlq_handler, event_bus, "Replay")
+
+@enduml

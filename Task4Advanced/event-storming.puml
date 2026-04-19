@@ -1,0 +1,93 @@
+
+@startuml
+title Future 2.0 - Event Storming (Target Event-Driven Architecture)
+
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam packageStyle rectangle
+skinparam defaultTextAlignment center
+
+legend left
+Оранжевый  = Domain Event
+Голубой = Publisher Context
+Зеленый = Subscriber Contexts
+endlegend
+
+' ===== EVENTS =====
+package "Events" #LightBlue {
+  rectangle "PatientRegistered" as PatientRegistered #Orange
+  rectangle "AppointmentBooked" as AppointmentBooked #Orange
+  rectangle "PatientArrivedAtClinic" as PatientArrivedAtClinic #Orange
+  rectangle "EncounterOpened" as EncounterOpened #Orange
+  rectangle "ResearchOrdered" as ResearchOrdered #Orange
+  rectangle "ResearchCompleted" as ResearchCompleted #Orange
+  rectangle "AIInferenceCompleted" as AIInferenceCompleted #Orange
+  rectangle "InvoiceCreated" as InvoiceCreated #Orange
+  rectangle "CreditApproved" as CreditApproved #Orange
+  rectangle "PaymentSucceeded" as PaymentSucceeded #Orange
+  rectangle "DeviceStudyCaptured" as DeviceStudyCaptured #Orange
+  rectangle "DeviceAlertRaised" as DeviceAlertRaised #Orange
+  rectangle "ConsentGranted" as ConsentGranted #Orange
+  rectangle "ConsentRevoked" as ConsentRevoked #Orange
+}
+
+' ===== SUBSCRIBERS =====
+package "Subscribers" #LightGreen {
+  rectangle "Encounter Management BC" as Encounter_BC
+  rectangle "Medical Research BC" as Medical_BC
+  rectangle "AI Inference BC" as AI_BC
+  rectangle "Account & Billing BC" as Billing_BC
+  rectangle "Credit Contract BC" as Credit_BC
+  rectangle "Payment Processing BC" as Payment_BC
+  rectangle "Notification BC" as Notification_BC
+  rectangle "Analytical Data Product BC" as Analytics_BC
+  rectangle "Self-Service Analytics BC" as SelfService_BC
+  rectangle "Consent & Privacy BC" as Consent_BC
+}
+
+' ===== RELATIONS =====
+PatientRegistered --> Encounter_BC
+PatientRegistered --> Analytics_BC
+
+AppointmentBooked --> Encounter_BC
+AppointmentBooked --> Notification_BC
+AppointmentBooked --> Analytics_BC
+
+PatientArrivedAtClinic --> Encounter_BC
+
+EncounterOpened --> Medical_BC
+EncounterOpened --> Billing_BC
+
+ResearchOrdered --> AI_BC
+ResearchOrdered --> Analytics_BC
+
+ResearchCompleted --> AI_BC
+ResearchCompleted --> Encounter_BC
+ResearchCompleted --> Analytics_BC
+
+AIInferenceCompleted --> Encounter_BC
+AIInferenceCompleted --> Notification_BC
+AIInferenceCompleted --> Analytics_BC
+
+InvoiceCreated --> Payment_BC
+InvoiceCreated --> Credit_BC
+InvoiceCreated --> Analytics_BC
+
+CreditApproved --> Billing_BC
+CreditApproved --> Notification_BC
+CreditApproved --> Analytics_BC
+
+PaymentSucceeded --> Billing_BC
+PaymentSucceeded --> Notification_BC
+PaymentSucceeded --> Analytics_BC
+
+DeviceStudyCaptured --> Medical_BC
+DeviceAlertRaised --> Notification_BC
+DeviceAlertRaised --> Medical_BC
+
+ConsentGranted --> SelfService_BC
+ConsentGranted --> Medical_BC
+
+ConsentRevoked --> SelfService_BC
+
+@enduml

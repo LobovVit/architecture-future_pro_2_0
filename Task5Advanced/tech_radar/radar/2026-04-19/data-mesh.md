@@ -1,0 +1,11 @@
+---
+title: "Data Mesh"
+ring: trial
+quadrant: methods-and-patterns
+tags:
+  - new
+---
+
+# Data Mesh
+
+Внедрять поэтапно через пилоты.
