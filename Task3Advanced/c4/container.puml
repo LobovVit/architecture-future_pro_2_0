@@ -1,0 +1,102 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+Person(business_user, "Бизнес-пользователь", "Строит отчеты и использует self-service витрину")
+Person(operator, "Оператор клиники", "Работает с операционными системами")
+Person(data_engineer, "Data Engineer / Analyst", "Создает витрины, пайплайны и data products")
+
+System_Boundary(future20, "Будущее 2.0 — целевая архитектура") {
+
+  System_Ext(pharma, "Фарма-компании", "Внешние партнеры")
+  System_Ext(device_vendor, "Производитель мед. оборудования", "Телеметрия и события оборудования")
+
+  Container(api_gateway, "API Gateway", "Gateway", "Единая точка входа в APIs")
+  Container(iam, "IAM / Access Control", "IAM / SSO", "SSO, RBAC, ABAC, audit access")
+
+  Container(legacy_camel, "Legacy Integration Bridge", "Apache Camel", "Временный anti-corruption layer для legacy интеграций")
+  Container(legacy_dwh, "Legacy DWH", "MS SQL Server 2008", "Устаревшее DWH с legacy логикой, только как источник/мост на этапе миграции")
+  Container(legacy_powerbuilder, "Legacy Operator UI", "PowerBuilder", "Временный legacy UI, выводится из эксплуатации")
+  Container(legacy_bi, "Legacy BI", "Power BI", "Legacy BI поверх DWH, постепенно заменяется")
+
+  Container(event_platform, "Event Streaming Platform", "Kafka / Managed Kafka", "Доменные события, интеграционные события, DLQ")
+  Container(schema_registry, "Schema Registry", "Schema Registry", "Версионирование схем событий и data contracts")
+  Container(stream_processing, "Stream Processing", "Flink / Kafka Streams / Spark", "Near-real-time обработка, enrichment, routing")
+  Container(dlq_service, "DLQ & Replay Service", "Service", "Повторная обработка и разбор ошибочных сообщений")
+
+  Container(clinical_services, "Clinical Domain Services", "Microservices", "Пациентский поток, клиники, расписание, персонал")
+  Container(fintech_services, "Fintech Domain Services", "Go / Java microservices", "Счета, кредиты, платежные и банковские сервисы")
+  Container(ai_services, "Medical AI Services", "Python services", "Inference, ML pipelines, medical AI models")
+  Container(pharma_connectors, "Pharma Connectors", "Integration services", "Интеграция фарма-партнеров")
+  Container(device_connectors, "Device Connectors", "Integration services", "Сбор данных и телеметрии оборудования")
+
+  Container(operational_datastores, "Domain Operational Datastores", "PostgreSQL / NoSQL", "Собственные базы доменных сервисов")
+  Container(medical_secure_store, "Secure Medical Data Store", "Protected storage / secure DB / PACS", "Медицинские карты, истории болезней, снимки, результаты исследований")
+  Container(reference_mdm, "Reference & Master Data", "MDM / Reference services", "НСИ, идентификаторы клиентов, справочники")
+
+  Container(data_ingestion, "Data Ingestion Layer", "CDC / Connectors / Batch loaders", "Загрузка данных из legacy и новых источников")
+  Container(data_lakehouse, "Lakehouse / Analytical Storage", "Object Storage + Iceberg/Delta or Cloud DWH", "Raw / curated / marts")
+  Container(data_governance, "Data Governance & Catalog", "Catalog / Lineage / Policy engine", "Каталог, lineage, классификация, masking")
+  Container(self_service_portal, "Self-Service Data Portal", "Web application", "Каталог витрин, конструктор запросов, доступ по ролям")
+  Container(semantic_layer, "Semantic / Metrics Layer", "Semantic service", "Единые бизнес-метрики и governed datasets")
+  Container(bi_platform, "Target BI Platform", "BI / dashboards", "Дашборды и управленческая отчетность")
+
+  Container(observability, "Observability & Audit", "Prometheus/Grafana/ELK/Tracing", "Мониторинг, логирование, аудит")
+}
+
+Rel(operator, api_gateway, "Работает через UI/API")
+Rel(business_user, self_service_portal, "Использует")
+Rel(data_engineer, data_governance, "Управляет каталогом, lineage и политиками")
+Rel(data_engineer, semantic_layer, "Создает метрики и витрины")
+
+Rel(api_gateway, clinical_services, "Маршрутизация API")
+Rel(api_gateway, fintech_services, "Маршрутизация API")
+Rel(api_gateway, ai_services, "Маршрутизация API")
+Rel(iam, api_gateway, "SSO / authn")
+Rel(iam, self_service_portal, "SSO / RBAC / ABAC")
+Rel(iam, data_governance, "Политики доступа")
+
+Rel(clinical_services, operational_datastores, "Read/Write")
+Rel(fintech_services, operational_datastores, "Read/Write")
+Rel(clinical_services, medical_secure_store, "Доступ к медицинским данным")
+Rel(ai_services, medical_secure_store, "Работают с медданными в защищенном контуре")
+Rel(clinical_services, reference_mdm, "Использует")
+Rel(fintech_services, reference_mdm, "Использует")
+
+Rel(clinical_services, event_platform, "Публикует/читает события")
+Rel(fintech_services, event_platform, "Публикует/читает события")
+Rel(ai_services, event_platform, "Публикует события inference / читает команды")
+Rel(pharma_connectors, event_platform, "Интеграционные события")
+Rel(device_connectors, event_platform, "Телеметрия и события оборудования")
+
+Rel(event_platform, schema_registry, "Использует схемы")
+Rel(stream_processing, event_platform, "Читает/пишет")
+Rel(dlq_service, event_platform, "DLQ / replay")
+Rel(stream_processing, data_lakehouse, "Пишет curated/streaming datasets")
+
+Rel(data_ingestion, legacy_dwh, "Читает legacy данные")
+Rel(data_ingestion, legacy_camel, "Читает интеграции")
+Rel(data_ingestion, data_lakehouse, "Пишет raw данные")
+
+Rel(data_lakehouse, semantic_layer, "Источник governed datasets")
+Rel(data_governance, data_lakehouse, "Каталог, политики, lineage, masking")
+Rel(self_service_portal, semantic_layer, "Использует")
+Rel(self_service_portal, data_governance, "Поиск и запрос доступа")
+Rel(bi_platform, semantic_layer, "Читает витрины и метрики")
+
+Rel(legacy_powerbuilder, legacy_dwh, "Работает поверх legacy")
+Rel(legacy_bi, legacy_dwh, "Строит legacy отчеты")
+Rel(legacy_camel, legacy_dwh, "Legacy integration")
+Rel(legacy_camel, event_platform, "Bridge during migration")
+
+Rel(pharma, pharma_connectors, "API / events")
+Rel(device_vendor, device_connectors, "API / telemetry")
+
+Rel(observability, clinical_services, "Мониторинг")
+Rel(observability, fintech_services, "Мониторинг")
+Rel(observability, event_platform, "Мониторинг")
+Rel(observability, data_lakehouse, "Мониторинг")
+Rel(observability, self_service_portal, "Мониторинг")
+
+@enduml

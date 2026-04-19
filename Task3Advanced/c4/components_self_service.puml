@@ -1,0 +1,34 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+Container_Boundary(self_service, "Self-Service Data Portal") {
+  Component(ui, "Portal UI", "Web UI", "Каталог витрин, поиск, конструктор отчетов")
+  Component(access_service, "Access & Policy Service", "Service", "Проверка ролей, ABAC, data access policies")
+  Component(dataset_catalog, "Dataset Catalog Adapter", "Service", "Поиск data products, владельцев и описаний")
+  Component(query_builder, "Query Builder / Report Composer", "Service", "Сборка пользовательских запросов по разрешенным витринам")
+  Component(metrics_api, "Semantic Metrics API", "Service", "Доступ к единым бизнес-метрикам")
+  Component(audit_logger, "Audit Logger", "Service", "Аудит доступа к витринам и запросам")
+  Component(request_workflow, "Access Request Workflow", "Service", "Запрос расширенного доступа и согласование")
+}
+
+System_Ext(iam, "IAM / Access Control")
+System_Ext(catalog, "Data Governance & Catalog")
+System_Ext(semantic, "Semantic Layer")
+System_Ext(bi, "Target BI Platform")
+
+Rel(ui, access_service, "Проверка доступа")
+Rel(ui, dataset_catalog, "Поиск витрин")
+Rel(ui, query_builder, "Формирование отчета")
+Rel(ui, request_workflow, "Запрос доступа")
+Rel(query_builder, metrics_api, "Запрашивает метрики и витрины")
+Rel(dataset_catalog, catalog, "Получает метаданные")
+Rel(access_service, iam, "RBAC / SSO")
+Rel(access_service, catalog, "ABAC / data policies")
+Rel(metrics_api, semantic, "Читает governed datasets")
+Rel(query_builder, audit_logger, "Пишет аудит")
+Rel(request_workflow, audit_logger, "Пишет аудит")
+Rel(bi, metrics_api, "Может использовать те же метрики")
+
+@enduml
